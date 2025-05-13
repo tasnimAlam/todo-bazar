@@ -6,16 +6,19 @@ const fastify = Fastify({
   logger: true,
 });
 
+// Connect database
 fastify.register(mysql, {
   promise: true,
   connectionString: `mysql://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`,
 });
 
+// Fetch all the tasks
 fastify.get("/tasks", async (request, reply) => {
   const [rows] = await fastify.mysql.query("SELECT * FROM tasks");
   return rows;
 });
 
+// Demo purpose
 fastify.get("/", async (request, reply) => {
   return { hello: "world" };
 });
@@ -27,7 +30,7 @@ fastify.post("/tasks", async (request, reply) => {
 
   const [result] = await fastify.mysql.query(
     "INSERT INTO tasks (title) VALUES (?)",
-    [title]
+    [title],
   );
 
   return { id: result.insertId, title };
@@ -41,7 +44,7 @@ fastify.put("/tasks/:id", async (request, reply) => {
 
   const [result] = await fastify.mysql.query(
     "UPDATE tasks SET title = ? WHERE id = ?",
-    [title, id]
+    [title, id],
   );
 
   if (result.affectedRows === 0) {
@@ -55,7 +58,9 @@ fastify.put("/tasks/:id", async (request, reply) => {
 fastify.delete("/tasks/:id", async (request, reply) => {
   const { id } = request.params;
 
-  const [result] = await fastify.mysql.query("DELETE FROM tasks WHERE id = ?", [id]);
+  const [result] = await fastify.mysql.query("DELETE FROM tasks WHERE id = ?", [
+    id,
+  ]);
 
   if (result.affectedRows === 0) {
     return reply.code(404).send({ error: "Task not found" });
@@ -63,7 +68,6 @@ fastify.delete("/tasks/:id", async (request, reply) => {
 
   return { message: "Task deleted" };
 });
-
 
 /**
  * Run the server!
